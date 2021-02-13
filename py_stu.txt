@@ -1,0 +1,249 @@
+优化方式：1.内存和cpu工作频率相对接近。故将数据/放在内存里
+2.短路运算，能短路的放在前面
+
+函数：
+关于函数的参数
+参数的定义顺序一般是：仅位置，位置，带缺省值普通参数，可变位置，仅关键字，关键字，可变关键字    【理解错误什么叫关键字参数？没用这种东西】
+参数列表参数一般顺序是：positional-only参数、普通参数、缺省参数、可变位置参数、keyword-only
+参数（可带缺省值）、可变关键字参数。
+函数的形参有5种定义方式（遵循一个原则简单的在前面，复杂的放后面）
+1.普通形参，即可以采用按位置传参也可以采用按关键字传参（关键字传参没有顺序区分）.
+  位置传参应该在关键字传参之前。定义时带缺省值的普通参数应该放在不带缺省值的参数后面（简单的放前面）
+2.可变位置参数，*args。用*修饰符装饰的参数，其会将收集到的参数封装为一个元组。
+3.可变关键字参数，**keargs。用两个*修饰符装饰的参数，将收集到的关键字参数封装为字典{按关键字传参的参数}
+4.仅关键字参数，*args后边的位置参数为仅关键字参数。仅关键字形参可以把带缺省值的放前面。
+5.仅位置参数。3.8新增。在位置参数后加上/如add(x, y, /, z)x, y为仅位置参数。注意带缺省值的不能放在不带缺省值的前面
+
+函数有自己的作用域/(最好采用传参的方式而不是随意去引用一些未知的变量)
+函数体只要里出现标识符=则声明该标识符为本地变量如果在定义前引用如x += 1则会报错unboundlocalerror可以事先声明该变量的作用域 global x
+嵌套函数中可能存在闭包
+闭包：引用了外部的自由变量（非全局变量），则形成闭包。闭包会记住改变量所对应的对象的id 即引用计数+1，所以该变量由于外部函数的调用结束 return销毁导致
+引用计数-1时，也不会消亡
+
+高阶函数 柯里化
+高阶函数至少满足如下条件之一：
+1.以一个函数作为参数
+2.返回一个函数
+柯里化f(x, y)->f(x)(y)的形式，即将以个两个参数的函数改为一个函数，该函数的返回是另一个以第二个参数为参数的函数
+如def add(x, y):
+		return x + y
+  def add(x):
+	def add_inc(y)
+		return x + y
+	return add_inc
+实现了add(x, y)->add(x)(y)
+datetime模块
+里边有datetime对象
+时间有naive time（无时区），aware time（包含时区信息）
+
+LEGB原则L-local，E-enclosing,G=global,B-build-in
+3个原则：
+1.向内穿透 2.对外不可见  3.就近原则
+
+关于函数参数的解构
+
+装饰器 
+装饰器是对函数/类进行增强的，采用了柯里化方式实现
+
+将被装饰的函数作为参数传入其中在定义一个嵌套函数wrapper包装器。在包装器中实现对函数的包装
+其中wrapper的参数应该采用可变位置此参数和可变关键字参数的形式
+如
+def logger(wrapped):
+    def wrapper(*args, **kwargs):
+        print("\"{}\" called {}, {}".format(wrapped.__name__, *args))
+        ret = wrapped(*args, **kwargs)
+        return ret
+    return wrapper
+@logger# 装饰器语法实际作用是 add = logger(add)
+def add(x, y):
+    return x + y
+
+这种称位无参装饰器。（实际上logger函数是只有一个位置参数的函数）
+等价式子很重要，将其下边定义的函数或者类提上来作为唯一实参传入在覆盖标识符
+每一次函数调用都是独立的，函数对象的id是不同的
+有参装饰器等价式按理论来写
+文档字符串。第一行的字符串，常常用三引号，跨行
+============================================================================
+匿名表达式lambda
+lambda x: x
+内建函数sorted()直接返回一个列表
+除了filter其他的函数都不改变元素及元素个数
+
+filter第一个参数为单参函数。匿名表达式可用于此。
+本质是判断元素的bool值。为False则过滤。
+map映射第一个参数为函数，后边可为多个可迭代对象。
+map(lambda x:(str(x), x),range(5))
+返回迭代器对象。其元素为二元组形式。可以用dict()配合使用生成字典
+zip(range(5), range(5))。分别按顺序拼接为二元组返回。
+
+文件处理
+open函数返回一个文件对象，mode，文本模式下应该指定编码方式一般为utf8
+打开文件为占用文件描述符，用完必须关闭文件
+4主模式r(readonly)，w（只写，永远是新文件），x（文件存在报错，不存在创建新文件），a（append，在文件末尾EOF处写入）
+附加模式t文本，b字节序列形式
+r 文件指针在0
+w，x 文件指针在0，eof
+a文件 指针在eof
+seek，tell都是针对字节操作
+seek(arg, whence=0, /)相对0文件开始，1指针当前位置，2eof的偏移值
+t模式下whencew为1 2 seek的偏移值只能为0
+常用seek(0, 0),seek(0, 2)
+tell告诉指针当前位置
+上下文管理with
+离开with语句时为自动调用close方法。
+
+
+路径操作
+os.path模块提供路径操作基本是对路径字符串的操作
+join，split等等
+exists()
+dirname()父路径，basename()基名abspath()绝对路径windows下splitdrive()
+
+Path类 更好用，其操作的基本是路径对象
+初始化
+
+parts属性，会返回目录各部分的元组
+parent方法返回父目录的路径对象
+
+
+目录组成部分
+name、stem、suffix、suffixes、with_suffix(suffix)、with_name(name)
+
+name 目录的最后一个部分
+suffix 目录中最后一个部分的扩展名
+stem 目录最后一个部分，没有后缀
+name = stem + suffix
+
+suffixes 返回多个扩展名列表
+with_suffix(suffix) 有扩展名则替换，无则补充扩展名
+with_name(name) 替换目录最后一个部分并返回一个新的路径
+
+全局方法
+cwd() 返回当前工作目录
+home() 返回当前家目录
+
+
+通配符
+glob(pattern) 通配给定的模式，返回生成器对象
+rglob(pattern) 通配给定的模式，递归目录，返回生成器对象
+
+? 代表一个字符
+* 表示任意个字符
+[abc]或[a-z] 表示一个字符
+
+
+其它操作
+rmdir() 删除空目录。没有提供判断目录为空的方法
+touch(mode=0o666, exist_ok=True) 创建一个文件
+as_uri() 将路径返回成URI，例如'file:///etc/passwd'
+mkdir(mode=0o777, parents=False, exist_ok=False)
+parents，是否创建父目录，True等同于mkdir -p。False时，父目录不存在，则抛出
+FileNotFoundError
+exist_ok参数，在3.5版本加入。False时，路径存在，抛出FileExistsError；True时，
+FileExistsError被忽略
+iterdir() 迭代当前目录，不递归
+
+
+ini 配置文件处理采用configparse库中的ConfigParse类
+方法read(filenames, encoding=None) Return list of successfully read files.
+get(section, option, *, raw=False, vars=None[, fallback])
+从指定的段的选项上取值，如果找到返回，如果没有找到就去找DEFAULT段有没有。
+getint(section, option, *, raw=False, vars=None[, fallback])
+getfloat(section, option, *, raw=False, vars=None[, fallback])
+getboolean(section, option, *, raw=False, vars=None[, fallback])
+
+set(section, option, value)
+可以将文件看作二层字典使用
+
+items(section, raw=False, vars=None)
+没有section，则返回所有section名字及其对象；如果指定section，则返回这个指定的section的键值
+对组成二元组。
+类似字典视图
+
+序列化与反序列化
+将对象序列化为字节序列，反序列化
+序列化要保留原有数据 有界限，有类型信息，
+
+pickle()只在python中使用的序列化工具支持所有py
+dump()将对象序列化到文件
+dumps()序列化为内存中的bytes对象
+load()
+loads()同理
+
+json采用完全独立于编程语言的文本格式来存储和表示数据。采用文本格式，故在py中对应的是str
+json中 {}为对像<-->pydict字典
+array<-->list
+false<-->False
+true<-->True
+null<-->None
+string<-->str
+面向对象：将一切事物抽像成类，并将其中的共同的特征抽像为属性，方法放在类里边，删繁就简。
+3要素：封装，继承，多态
+封装：组装和封闭，组装：将类的属性和方法组到一起
+封闭：只对外开放一些一定的接口，将不想暴露的封闭在类里。只需要提供操作接口就行。原理等不必要显示出来。
+
+实例化instance分为实例__new__() 和初始化__init__()
+类里边的都是类属性
+类字典__dict__能看见这些值
+实例有实例字典
+当实例访问一个属性时先查找实例自身的字典没有在查类字典，没有就报attributeerror
+实例调用类方法时会有一个绑定效果，将实例与该类方法绑定一起，该属性的即第一参数注入为当前实例对象。
+用类来访问没有绑定，应该送入第一参数
+
+self永元只想当前实例
+self的参数注入由解释器实现。
+类型的类型是type
+
+@classmethod修饰的方法为类方法，该装饰器会提取类型并将类型与方法绑定，自动注入第一参数cls
+所以不论是实例调用还是类调用，该方法都与类型绑定。即与实例无关
+
+@staticmethod修饰的方法为静态方法，取消了所有绑定，很少用
+
+
+
+封装，类的写法
+成员的访问控制，公有成员大家都能访问和需修改，私有成员以__开头的成员，在py中的处理是改名。为该成员加上_定义他的类的类名前缀
+继承，object是根 基类。type是构造类的元类。
+继承中的访问原则 先查找实例字典的属性，在查找实例的类的类字典的属性，最后在找父类的字典
+继承一般有发扬，也就是做一些增强或是器他的操作，如果不是重写方法，则应该先调用父类的方法，采用super().的方式调用如super().__init__()
+等价于super(__class__, 实例).__init__()
+多态的前提有2：1.继承 2.重写/覆盖
+不同的子类调用同一个接口会得到不同的态
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
